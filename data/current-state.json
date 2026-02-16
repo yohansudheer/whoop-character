@@ -1,0 +1,16 @@
+{
+  "state": "neutral",
+  "config": {
+    "modelPath": "/models/character-neutral.glb",
+    "eyeOpenness": 0.6,
+    "lightingColor": "#aaaaaa",
+    "backgroundColor": "#1a1a2e",
+    "animationSpeed": 1.0
+  },
+  "data": {
+    "recovery": 55,
+    "sleepPerformance": 55,
+    "strain": 8.27
+  },
+  "lastUpdated": "2026-02-15T21:37:18.045Z"
+}

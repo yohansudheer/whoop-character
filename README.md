@@ -1,36 +1,263 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Whoop-Powered 3D Character Webpage
+
+A dynamic 3D animated character that visualizes your Whoop health metrics in real-time. Your character's appearance changes daily based on recovery, sleep performance, and strain data - looking energetic when you're well-rested (80%+ recovery) or exhausted when recovery is low.
+
+## Features
+
+- **3D Character Visualization**: Ready Player Me-style animated character rendered with Three.js
+- **Dynamic States**: Character appearance changes based on 5 recovery levels
+  - Energetic (80-100% recovery): Upright pose, bright colors, green lighting
+  - Good (60-79%): Normal stance, healthy appearance
+  - Neutral (40-59%): Relaxed pose, standard coloring
+  - Tired (20-39%): Slouched posture, pale skin, orange lighting
+  - Exhausted (0-19%): Hunched over, very pale, red lighting
+- **Real Whoop Data**: Integrates with Whoop API for recovery, sleep, and strain metrics
+- **Auto-Updates**: Automatically refreshes every day at 10 AM
+- **Stat Bars**: Visual display of Recovery %, Sleep Performance, and Strain
+- **Interactive 3D**: Rotate camera to view character from different angles
+
+## Tech Stack
+
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Three.js** - 3D rendering engine
+- **React Three Fiber** - React bindings for Three.js
+- **Tailwind CSS** - Styling
+- **Vercel** - Hosting with cron jobs
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- Whoop account with API access
+- Vercel account (for deployment)
+
+### Installation
+
+1. **Install dependencies:**
+
+```bash
+npm install
+```
+
+2. **Set up environment variables:**
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local` and add your Whoop credentials:
+
+```
+WHOOP_CLIENT_ID=9687ec3b-fced-4938-8e28-774e2b6db849
+WHOOP_CLIENT_SECRET=your_secret_here
+WHOOP_ACCESS_TOKEN=your_token_here
+WHOOP_REFRESH_TOKEN=your_refresh_token_here
+```
+
+3. **Add 3D character models:**
+
+See `public/models/README.md` for instructions on generating and adding the 5 required GLB files.
+
+4. **Run development server:**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see your character!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+whoop-character/
+├── app/
+│   ├── page.tsx              # Main page with 3D scene
+│   ├── layout.tsx            # Root layout
+│   ├── globals.css           # Global styles
+│   └── api/
+│       └── cron/
+│           └── update/
+│               └── route.ts  # Daily update endpoint
+├── components/
+│   ├── Character3D.tsx       # 3D character component
+│   ├── Scene.tsx             # Three.js scene wrapper
+│   └── StatBars.tsx          # Stat bars UI
+├── lib/
+│   ├── whoop.ts              # Whoop API integration
+│   └── stateCalculator.ts    # State mapping logic
+├── types/
+│   └── index.ts              # TypeScript interfaces
+├── data/
+│   └── current-state.json    # Current character state
+├── public/
+│   └── models/               # GLB character models
+└── vercel.json               # Cron job configuration
+```
 
-## Learn More
+## Development
 
-To learn more about Next.js, take a look at the following resources:
+### Testing Different States
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To test different character states during development, edit `data/current-state.json`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```json
+{
+  "state": "energetic",  // Change to: energetic, good, neutral, tired, exhausted
+  "config": {
+    "modelPath": "/models/character-energetic.glb",
+    "eyeOpenness": 0.9,
+    "lightingColor": "#00ff88",
+    "backgroundColor": "#001a0f",
+    "animationSpeed": 1.5
+  },
+  "data": {
+    "recovery": 85,        // Change these values
+    "sleepPerformance": 90,
+    "strain": 15
+  },
+  "lastUpdated": "2026-02-13T10:00:00.000Z"
+}
+```
 
-## Deploy on Vercel
+### Manual Data Update
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Trigger the cron job manually:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+curl http://localhost:3000/api/cron/update \
+  -H "Authorization: Bearer ${CRON_SECRET}"
+```
+
+## Deployment
+
+### Deploy to Vercel
+
+1. **Push to GitHub:**
+
+```bash
+git add .
+git commit -m "Initial commit: Whoop character webpage"
+git branch -M main
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+2. **Deploy on Vercel:**
+
+- Go to [vercel.com](https://vercel.com)
+- Import your GitHub repository
+- Add environment variables (WHOOP credentials)
+- Deploy
+
+3. **Verify Cron Job:**
+
+- Go to Vercel Dashboard → your project → Cron Jobs
+- Verify "Daily Update" is scheduled for 10 AM
+- Manually trigger once to populate initial data
+
+### Environment Variables on Vercel
+
+Add these in Vercel Dashboard → Settings → Environment Variables:
+
+- `WHOOP_CLIENT_ID`
+- `WHOOP_CLIENT_SECRET`
+- `WHOOP_ACCESS_TOKEN`
+- `WHOOP_REFRESH_TOKEN`
+
+Note: `CRON_SECRET` is automatically generated by Vercel.
+
+## Customization
+
+### Change Update Time
+
+Edit `vercel.json`:
+
+```json
+{
+  "crons": [{
+    "path": "/api/cron/update",
+    "schedule": "0 8 * * *"  // Change to 8 AM
+  }]
+}
+```
+
+### Adjust Recovery Thresholds
+
+Edit `lib/stateCalculator.ts`:
+
+```typescript
+export function calculateCharacterState(data: WhoopData): CharacterState {
+  const { recovery } = data;
+
+  if (recovery >= 75) return 'energetic';  // Adjust these values
+  if (recovery >= 55) return 'good';
+  if (recovery >= 35) return 'neutral';
+  if (recovery >= 15) return 'tired';
+  return 'exhausted';
+}
+```
+
+### Modify Colors and Lighting
+
+Edit the color maps in `lib/stateCalculator.ts`:
+
+```typescript
+export function getLightingColor(state: CharacterState): string {
+  const colorMap: Record<CharacterState, string> = {
+    energetic: '#00ff88',   // Change these hex colors
+    good: '#88ccff',
+    // ...
+  };
+  return colorMap[state];
+}
+```
+
+## Troubleshooting
+
+### Models Not Loading
+
+- Check that GLB files exist in `public/models/`
+- Verify file names match exactly: `character-energetic.glb`, etc.
+- Check browser console for errors
+- Ensure models are < 10MB each
+
+### Cron Job Not Running
+
+- Verify `vercel.json` is in root directory
+- Check Vercel Dashboard → Cron Jobs for errors
+- Ensure `CRON_SECRET` environment variable is set
+- Check Vercel Function Logs for errors
+
+### Whoop Data Not Updating
+
+- Verify Whoop API tokens are valid
+- Check token expiration (refresh tokens if needed)
+- Review API endpoint logs in Vercel
+- Ensure Whoop MCP server is accessible
+
+## Future Enhancements
+
+- [ ] Historical timeline showing character evolution
+- [ ] Share feature with shareable links
+- [ ] Workout celebration animations
+- [ ] Mobile touch gesture controls
+- [ ] Achievement badges for streaks
+- [ ] Friend comparison mode
+
+## License
+
+MIT
+
+## Credits
+
+Built with:
+- [Next.js](https://nextjs.org/)
+- [Three.js](https://threejs.org/)
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/)
+- [Whoop API](https://developer.whoop.com/)
+
+---
+
+**Powered by Whoop Data • Updates Daily at 10 AM**

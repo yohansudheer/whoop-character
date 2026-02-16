@@ -23,4 +23,31 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Smooth transitions for dynamic backgrounds */
+main {
+  transition: background 1s ease-in-out;
+}
+
+/* Custom scrollbar for stat overlay */
+.stat-overlay::-webkit-scrollbar {
+  width: 8px;
+}
+
+.stat-overlay::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.stat-overlay::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.stat-overlay::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
