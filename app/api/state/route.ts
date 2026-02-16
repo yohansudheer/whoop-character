@@ -36,3 +36,9 @@ export async function GET() {
 
 // Enable caching for 5 minutes
 export const revalidate = 300;
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+// Specify runtime
+export const runtime = 'nodejs';
