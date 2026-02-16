@@ -1,9 +1,76 @@
+'use client';
+
 import { Character2D } from '@/components/Character2D';
 import { StatBars } from '@/components/StatBars';
-import currentState from '@/data/current-state.json';
+import { useEffect, useState } from 'react';
+
+interface WhoopData {
+  recovery: number;
+  sleepPerformance: number;
+  strain: number;
+}
+
+interface CharacterConfig {
+  modelPath: string;
+  eyeOpenness: number;
+  animationSpeed: number;
+  lightingColor: string;
+  backgroundColor: string;
+}
+
+interface StateData {
+  state: string;
+  config: CharacterConfig;
+  data: WhoopData;
+  lastUpdated: string;
+}
 
 export default function Home() {
-  const { config, data, lastUpdated } = currentState;
+  const [stateData, setStateData] = useState<StateData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchState() {
+      try {
+        const response = await fetch('/api/state');
+        if (!response.ok) {
+          throw new Error('Failed to fetch state');
+        }
+        const data = await response.json();
+        setStateData(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching state:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setLoading(false);
+      }
+    }
+
+    fetchState();
+
+    // Refresh data every 5 minutes
+    const interval = setInterval(fetchState, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="relative w-screen h-screen overflow-hidden flex items-center justify-center" style={{ background: '#e0e0e0' }}>
+        <div className="text-gray-700 text-xl">Loading...</div>
+      </main>
+    );
+  }
+
+  if (error || !stateData) {
+    return (
+      <main className="relative w-screen h-screen overflow-hidden flex items-center justify-center" style={{ background: '#e0e0e0' }}>
+        <div className="text-red-600 text-xl">Error loading data: {error}</div>
+      </main>
+    );
+  }
+
+  const { config, data, lastUpdated, state } = stateData;
 
   return (
     <main className="relative w-screen h-screen overflow-hidden" style={{ background: '#e0e0e0' }}>
@@ -22,7 +89,7 @@ export default function Home() {
           Yohan's Wellness
         </h1>
         <p className="text-gray-600 text-sm mb-6 capitalize">
-          Status: <span className="text-gray-900 font-medium">{currentState.state}</span>
+          Status: <span className="text-gray-900 font-medium">{state}</span>
         </p>
 
         <StatBars
