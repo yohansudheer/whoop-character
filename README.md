@@ -1,263 +1,122 @@
-# Whoop-Powered 3D Character Webpage
+# Whoop Character Webpage
 
-A dynamic 3D animated character that visualizes your Whoop health metrics in real-time. Your character's appearance changes daily based on recovery, sleep performance, and strain data - looking energetic when you're well-rested (80%+ recovery) or exhausted when recovery is low.
+A real-time health visualization showing your wellness state through an animated character based on your Whoop recovery data.
 
 ## Features
 
-- **3D Character Visualization**: Ready Player Me-style animated character rendered with Three.js
-- **Dynamic States**: Character appearance changes based on 5 recovery levels
-  - Energetic (80-100% recovery): Upright pose, bright colors, green lighting
-  - Good (60-79%): Normal stance, healthy appearance
-  - Neutral (40-59%): Relaxed pose, standard coloring
-  - Tired (20-39%): Slouched posture, pale skin, orange lighting
-  - Exhausted (0-19%): Hunched over, very pale, red lighting
-- **Real Whoop Data**: Integrates with Whoop API for recovery, sleep, and strain metrics
-- **Auto-Updates**: Automatically refreshes every day at 10 AM
-- **Stat Bars**: Visual display of Recovery %, Sleep Performance, and Strain
-- **Interactive 3D**: Rotate camera to view character from different angles
+- **Real-time Whoop Data Integration**: Displays your current recovery, sleep performance, and strain
+- **Dynamic Character States**: Character appearance changes based on your recovery score:
+  - 80-100%: Energetic (suit & tie)
+  - 60-79%: Good (blue shirt, healthy look)
+  - 40-59%: Neutral (gray sweater, casual)
+  - 20-39%: Tired (dark clothes, messy hair)
+  - 0-19%: Exhausted (hunched posture)
+- **Automatic Daily Updates**: Cron job updates your stats every day at 10 AM
+- **Smooth Animations**: Breathing animation for a lifelike character display
 
 ## Tech Stack
 
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Three.js** - 3D rendering engine
-- **React Three Fiber** - React bindings for Three.js
-- **Tailwind CSS** - Styling
-- **Vercel** - Hosting with cron jobs
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Whoop API
+- Vercel Cron Jobs
 
-## Getting Started
+## Deploy to Vercel
 
-### Prerequisites
+### Quick Deploy (Recommended)
 
-- Node.js 18+ installed
-- Whoop account with API access
-- Vercel account (for deployment)
+1. Visit [Vercel Dashboard](https://vercel.com/new)
+2. Click "Import Project"
+3. Select your GitHub repository: `yohansudheer/whoop-character`
+4. Configure environment variables (see below)
+5. Click "Deploy"
 
-### Installation
+### Environment Variables
 
-1. **Install dependencies:**
+Add these in Vercel Dashboard → Settings → Environment Variables:
 
+```
+WHOOP_CLIENT_ID=9687ec3b-fced-4938-8e28-774e2b6db849
+WHOOP_CLIENT_SECRET=your_client_secret_here
+WHOOP_REFRESH_TOKEN=your_refresh_token_here
+CRON_SECRET=your_cron_secret_here
+```
+
+**Getting Your Whoop Credentials:**
+
+1. **Client ID & Secret**: Already configured (see `.env.example`)
+2. **Refresh Token**: You'll need to go through the OAuth flow once:
+   - Visit: `https://api.prod.whoop.com/oauth/oauth2/auth?response_type=code&client_id=9687ec3b-fced-4938-8e28-774e2b6db849&redirect_uri=https://your-vercel-url.vercel.app/api/auth/callback&scope=read:recovery read:sleep read:cycles&state=randomstate12345`
+   - Replace `your-vercel-url.vercel.app` with your actual Vercel deployment URL
+   - Authorize the app
+   - Exchange the code for a refresh token (see Whoop API docs)
+3. **Cron Secret**: Generate a random string for securing your cron endpoint
+
+## Local Development
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yohansudheer/whoop-character.git
+cd whoop-character
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-2. **Set up environment variables:**
-
+3. Create `.env.local` file:
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-Edit `.env.local` and add your Whoop credentials:
+4. Add your Whoop credentials to `.env.local`
 
-```
-WHOOP_CLIENT_ID=9687ec3b-fced-4938-8e28-774e2b6db849
-WHOOP_CLIENT_SECRET=your_secret_here
-WHOOP_ACCESS_TOKEN=your_token_here
-WHOOP_REFRESH_TOKEN=your_refresh_token_here
-```
-
-3. **Add 3D character models:**
-
-See `public/models/README.md` for instructions on generating and adding the 5 required GLB files.
-
-4. **Run development server:**
-
+5. Run the development server:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your character!
+6. Open [http://localhost:3000](http://localhost:3000)
+
+## How It Works
+
+1. **Data Fetching**: The `/api/cron/update` endpoint fetches latest Whoop data
+2. **State Calculation**: Recovery score determines character state
+3. **Character Display**: 2D character image updates based on state
+4. **Automatic Updates**: Vercel Cron runs daily at 10 AM to refresh data
 
 ## Project Structure
 
 ```
 whoop-character/
 ├── app/
-│   ├── page.tsx              # Main page with 3D scene
-│   ├── layout.tsx            # Root layout
-│   ├── globals.css           # Global styles
-│   └── api/
-│       └── cron/
-│           └── update/
-│               └── route.ts  # Daily update endpoint
+│   ├── api/cron/update/route.ts  # Cron job for daily updates
+│   └── page.tsx                   # Main page
 ├── components/
-│   ├── Character3D.tsx       # 3D character component
-│   ├── Scene.tsx             # Three.js scene wrapper
-│   └── StatBars.tsx          # Stat bars UI
-├── lib/
-│   ├── whoop.ts              # Whoop API integration
-│   └── stateCalculator.ts    # State mapping logic
-├── types/
-│   └── index.ts              # TypeScript interfaces
+│   ├── Character2D.tsx            # Character display component
+│   └── StatBars.tsx               # Health metrics display
 ├── data/
-│   └── current-state.json    # Current character state
+│   └── current-state.json         # Current state data
+├── lib/
+│   ├── whoop.ts                   # Whoop API client
+│   └── stateCalculator.ts         # State calculation logic
 ├── public/
-│   └── models/               # GLB character models
-└── vercel.json               # Cron job configuration
+│   └── images/                    # Character images (5 states)
+└── types/
+    └── index.ts                   # TypeScript types
 ```
 
-## Development
+## Character Images
 
-### Testing Different States
+All character images have transparent backgrounds and are optimized for display on the light gray background (#e0e0e0).
 
-To test different character states during development, edit `data/current-state.json`:
+## Cron Job Configuration
 
-```json
-{
-  "state": "energetic",  // Change to: energetic, good, neutral, tired, exhausted
-  "config": {
-    "modelPath": "/models/character-energetic.glb",
-    "eyeOpenness": 0.9,
-    "lightingColor": "#00ff88",
-    "backgroundColor": "#001a0f",
-    "animationSpeed": 1.5
-  },
-  "data": {
-    "recovery": 85,        // Change these values
-    "sleepPerformance": 90,
-    "strain": 15
-  },
-  "lastUpdated": "2026-02-13T10:00:00.000Z"
-}
-```
+The cron job is configured in `vercel.json` to run daily at 10 AM UTC. You can modify the schedule by editing the cron expression.
 
-### Manual Data Update
-
-Trigger the cron job manually:
-
-```bash
-curl http://localhost:3000/api/cron/update \
-  -H "Authorization: Bearer ${CRON_SECRET}"
-```
-
-## Deployment
-
-### Deploy to Vercel
-
-1. **Push to GitHub:**
-
-```bash
-git add .
-git commit -m "Initial commit: Whoop character webpage"
-git branch -M main
-git remote add origin <your-repo-url>
-git push -u origin main
-```
-
-2. **Deploy on Vercel:**
-
-- Go to [vercel.com](https://vercel.com)
-- Import your GitHub repository
-- Add environment variables (WHOOP credentials)
-- Deploy
-
-3. **Verify Cron Job:**
-
-- Go to Vercel Dashboard → your project → Cron Jobs
-- Verify "Daily Update" is scheduled for 10 AM
-- Manually trigger once to populate initial data
-
-### Environment Variables on Vercel
-
-Add these in Vercel Dashboard → Settings → Environment Variables:
-
-- `WHOOP_CLIENT_ID`
-- `WHOOP_CLIENT_SECRET`
-- `WHOOP_ACCESS_TOKEN`
-- `WHOOP_REFRESH_TOKEN`
-
-Note: `CRON_SECRET` is automatically generated by Vercel.
-
-## Customization
-
-### Change Update Time
-
-Edit `vercel.json`:
-
-```json
-{
-  "crons": [{
-    "path": "/api/cron/update",
-    "schedule": "0 8 * * *"  // Change to 8 AM
-  }]
-}
-```
-
-### Adjust Recovery Thresholds
-
-Edit `lib/stateCalculator.ts`:
-
-```typescript
-export function calculateCharacterState(data: WhoopData): CharacterState {
-  const { recovery } = data;
-
-  if (recovery >= 75) return 'energetic';  // Adjust these values
-  if (recovery >= 55) return 'good';
-  if (recovery >= 35) return 'neutral';
-  if (recovery >= 15) return 'tired';
-  return 'exhausted';
-}
-```
-
-### Modify Colors and Lighting
-
-Edit the color maps in `lib/stateCalculator.ts`:
-
-```typescript
-export function getLightingColor(state: CharacterState): string {
-  const colorMap: Record<CharacterState, string> = {
-    energetic: '#00ff88',   // Change these hex colors
-    good: '#88ccff',
-    // ...
-  };
-  return colorMap[state];
-}
-```
-
-## Troubleshooting
-
-### Models Not Loading
-
-- Check that GLB files exist in `public/models/`
-- Verify file names match exactly: `character-energetic.glb`, etc.
-- Check browser console for errors
-- Ensure models are < 10MB each
-
-### Cron Job Not Running
-
-- Verify `vercel.json` is in root directory
-- Check Vercel Dashboard → Cron Jobs for errors
-- Ensure `CRON_SECRET` environment variable is set
-- Check Vercel Function Logs for errors
-
-### Whoop Data Not Updating
-
-- Verify Whoop API tokens are valid
-- Check token expiration (refresh tokens if needed)
-- Review API endpoint logs in Vercel
-- Ensure Whoop MCP server is accessible
-
-## Future Enhancements
-
-- [ ] Historical timeline showing character evolution
-- [ ] Share feature with shareable links
-- [ ] Workout celebration animations
-- [ ] Mobile touch gesture controls
-- [ ] Achievement badges for streaks
-- [ ] Friend comparison mode
 
 ## License
 
 MIT
-
-## Credits
-
-Built with:
-- [Next.js](https://nextjs.org/)
-- [Three.js](https://threejs.org/)
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/)
-- [Whoop API](https://developer.whoop.com/)
-
----
-
-**Powered by Whoop Data • Updates Daily at 10 AM**
